@@ -1,4 +1,4 @@
-﻿namespace Physical.WriteApi.Models
+﻿namespace Physical.WriteApi.Entities
 {
     public class Order
     {

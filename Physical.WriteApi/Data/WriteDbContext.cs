@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Physical.WriteApi.Models;
+using Physical.WriteApi.Entities;
 
 namespace Physical.WriteApi.Data;
 

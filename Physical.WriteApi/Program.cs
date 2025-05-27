@@ -1,6 +1,7 @@
+using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Physical.WriteApi.Commands.Handlers;
 using Physical.WriteApi.Data;
+using Physical.WriteApi.Handlers;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,7 @@ builder.Services.AddDbContext<WriteDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddScoped<CreateOrderCommandHandler>();
+builder.Services.AddMediatR(typeof(CreateOrderCommandHandler).Assembly);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
