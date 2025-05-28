@@ -1,7 +1,11 @@
+using Cqrs.Shared.Infrastructure;
+using Cqrs.Shared.Interfaces;
+using Cqrs.Shared.Settings;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Physical.WriteApi.Data;
 using Physical.WriteApi.Handlers;
 using Physical.WriteApi.Validators;
@@ -18,6 +22,12 @@ builder.Services
     .AddFluentValidationClientsideAdapters(); 
 
 builder.Services.AddValidatorsFromAssemblyContaining<CreateOrderDtoValidator>();
+
+builder.Services.Configure<RabbitMqSettings>(builder.Configuration.GetSection("RabbitMq"));
+builder.Services.AddSingleton<IRabbitMqSettings>(sp =>
+    sp.GetRequiredService<IOptions<RabbitMqSettings>>().Value);
+builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
+
 
 builder.Services.AddScoped<CreateOrderCommandHandler>();
 builder.Services.AddMediatR(typeof(CreateOrderCommandHandler).Assembly);
