@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cqrs.LogicalApi", "Cqrs.Log
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Physical.WriteApi", "Physical.WriteApi\Physical.WriteApi.csproj", "{F093CC05-A0BA-4CB8-8181-2D838D6175E6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Physical.ReadApi", "Physical.ReadApi\Physical.ReadApi.csproj", "{F7122ADE-997A-4721-B68A-D945547D46D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{F093CC05-A0BA-4CB8-8181-2D838D6175E6}.Release|x64.Build.0 = Release|Any CPU
 		{F093CC05-A0BA-4CB8-8181-2D838D6175E6}.Release|x86.ActiveCfg = Release|Any CPU
 		{F093CC05-A0BA-4CB8-8181-2D838D6175E6}.Release|x86.Build.0 = Release|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Debug|x64.Build.0 = Debug|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Debug|x86.Build.0 = Debug|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Release|x64.ActiveCfg = Release|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Release|x64.Build.0 = Release|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Release|x86.ActiveCfg = Release|Any CPU
+		{F7122ADE-997A-4721-B68A-D945547D46D0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
