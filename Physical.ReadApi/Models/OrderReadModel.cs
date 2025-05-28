@@ -1,6 +1,6 @@
 ﻿namespace Physical.ReadApi.Models
 {
-    public class Order
+    public class OrderReadModel
     {
         public int Id { get; set; }
         public string Description { get; set; }

@@ -1,4 +1,5 @@
 ﻿using Cqrs.Shared.Events;
+using Cqrs.Shared.Interfaces;
 using MediatR;
 using Physical.WriteApi.Commands;
 using Physical.WriteApi.Data;

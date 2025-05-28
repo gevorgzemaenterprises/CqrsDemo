@@ -8,6 +8,6 @@ namespace Physical.ReadApi.Data
     {
         public ReadDbContext(DbContextOptions<ReadDbContext> options) : base(options) { }
 
-        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderReadModel> Orders { get; set; }
     }
 }
