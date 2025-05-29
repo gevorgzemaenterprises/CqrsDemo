@@ -1,5 +1,7 @@
 ﻿using Cqrs.Shared.Events;
+using Cqrs.Shared.Interfaces;
 using Physical.ReadApi.Data;
+using Physical.ReadApi.Models;
 
 namespace Physical.ReadApi.EventHandlers
 {

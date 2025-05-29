@@ -22,7 +22,7 @@ namespace Physical.ReadApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Physical.ReadApi.Models.Order", b =>
+            modelBuilder.Entity("Physical.ReadApi.Models.OrderReadModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()

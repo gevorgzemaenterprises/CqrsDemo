@@ -10,5 +10,6 @@ namespace Cqrs.Shared.Interfaces
     {
         void Publish<T>(T @event) where T : class;
         void Subscribe<T>(Action<T> handler) where T : class;
+        Task PublishAsync<T>(T @event) where T : class;
     }
 }

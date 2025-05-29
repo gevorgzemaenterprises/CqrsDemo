@@ -38,7 +38,7 @@ namespace Physical.WriteApi.Handlers
                 CreatedAt = order.CreatedAt
             };
 
-            _eventBus.Publish(@event);
+            _eventBus.PublishAsync(@event);
 
             return order.Id;
         }

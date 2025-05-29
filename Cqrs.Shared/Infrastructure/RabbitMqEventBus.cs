@@ -1,9 +1,9 @@
 ﻿using Cqrs.Shared.Interfaces;
 using Cqrs.Shared.Settings;
+using Newtonsoft.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System.Text;
-using System.Text.Json;
 
 namespace Cqrs.Shared.Infrastructure
 {
@@ -30,29 +30,57 @@ namespace Cqrs.Shared.Infrastructure
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
-            _channel.QueueDeclare(queue: settings.QueueName,
-                                  durable: false,
-                                  exclusive: false,
-                                  autoDelete: false,
-                                  arguments: null);
+            // 👇️ ОБЯЗАТЕЛЬНО СОЗДАЕМ EXCHANGE ПЕРЕД ПУБЛИКАЦИЕЙ
+            _channel.ExchangeDeclare(
+                exchange: "cqrs_exchange",
+                type: ExchangeType.Direct,
+                durable: true,
+                autoDelete: false,
+                arguments: null);
+
+            _channel.QueueDeclare(
+                queue: settings.QueueName,
+                durable: false,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+
+            // ❗ Если ты хочешь, чтобы очередь получала события с exchange — нужно биндинг сделать:
+            // (можно сделать универсально позже, сейчас хотя бы для OrderCreatedEvent)
+            _channel.QueueBind(
+                queue: settings.QueueName,
+                exchange: "cqrs_exchange",
+                routingKey: "OrderCreatedEvent");
 
             var consumer = new EventingBasicConsumer(_channel);
             consumer.Received += HandleReceivedEvent;
 
-            _channel.BasicConsume(queue: settings.QueueName,
-                                  autoAck: true,
-                                  consumer: consumer);
+            _channel.BasicConsume(
+                queue: settings.QueueName,
+                autoAck: true,
+                consumer: consumer);
         }
 
         public void Publish<T>(T @event) where T : class
         {
-            var message = JsonSerializer.Serialize(@event);
-            var body = Encoding.UTF8.GetBytes(message);
+            var json = JsonConvert.SerializeObject(@event);
+            var body = Encoding.UTF8.GetBytes(json);
+            var properties = _channel.CreateBasicProperties();
+            properties.DeliveryMode = 2;
 
-            _channel.BasicPublish(exchange: "",
-                                  routingKey: _settings.QueueName,
-                                  basicProperties: null,
-                                  body: body);
+            _channel.BasicPublish(
+                exchange: "cqrs_exchange",
+                routingKey: typeof(T).Name,
+                basicProperties: properties,
+                body: body
+            );
+        }
+
+        // ✅ Добавить асинхронную версию
+        public Task PublishAsync<T>(T @event) where T : class
+        {
+            Publish(@event); // или можно использовать async RabbitMQ клиент
+            return Task.CompletedTask;
         }
 
         public void Subscribe<T>(Action<T> handler) where T : class
@@ -77,7 +105,7 @@ namespace Cqrs.Shared.Infrastructure
                     var type = Type.GetType($"Cqrs.Shared.Events.{handlerKey}, Cqrs.Shared");
                     if (type == null) continue;
 
-                    var obj = JsonSerializer.Deserialize(message, type);
+                    var obj = JsonConvert.DeserializeObject(message, type);
                     if (obj != null)
                     {
                         foreach (var handler in _handlers[handlerKey])

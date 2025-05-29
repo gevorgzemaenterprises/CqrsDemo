@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Physical.WriteApi.Data;
+using Physical.ReadApi.Data;
 
 #nullable disable
 
-namespace Physical.WriteApi.Migrations
+namespace Physical.ReadApi.Migrations
 {
-    [DbContext(typeof(WriteDbContext))]
-    partial class WriteDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ReadDbContext))]
+    [Migration("20250528175407_initial")]
+    partial class initial
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,7 +25,7 @@ namespace Physical.WriteApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Physical.WriteApi.Entities.Order", b =>
+            modelBuilder.Entity("Physical.ReadApi.Models.OrderReadModel", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
