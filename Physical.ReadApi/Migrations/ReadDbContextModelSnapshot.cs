@@ -25,10 +25,7 @@ namespace Physical.ReadApi.Migrations
             modelBuilder.Entity("Physical.ReadApi.Models.OrderReadModel", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");

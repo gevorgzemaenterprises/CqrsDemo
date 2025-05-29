@@ -24,4 +24,8 @@
     <ProjectReference Include="..\Cqrs.Shared\Cqrs.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

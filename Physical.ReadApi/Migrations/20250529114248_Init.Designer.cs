@@ -5,15 +5,15 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Physical.WriteApi.Data;
+using Physical.ReadApi.Data;
 
 #nullable disable
 
-namespace Physical.WriteApi.Migrations
+namespace Physical.ReadApi.Migrations
 {
-    [DbContext(typeof(WriteDbContext))]
-    [Migration("20250528175544_initial")]
-    partial class initial
+    [DbContext(typeof(ReadDbContext))]
+    [Migration("20250529114248_Init")]
+    partial class Init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,13 +25,10 @@ namespace Physical.WriteApi.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Physical.WriteApi.Entities.Order", b =>
+            modelBuilder.Entity("Physical.ReadApi.Models.OrderReadModel", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
