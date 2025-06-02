@@ -57,7 +57,7 @@ namespace Cqrs.Shared.Infrastructure
 
             _channel.BasicConsume(
                 queue: settings.QueueName,
-                autoAck: true,
+                autoAck: false,
                 consumer: consumer);
         }
 
@@ -76,10 +76,9 @@ namespace Cqrs.Shared.Infrastructure
             );
         }
 
-        // ✅ Добавить асинхронную версию
         public Task PublishAsync<T>(T @event) where T : class
         {
-            Publish(@event); // или можно использовать async RabbitMQ клиент
+            Publish(@event); 
             return Task.CompletedTask;
         }
 
@@ -96,8 +95,8 @@ namespace Cqrs.Shared.Infrastructure
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
+            bool processed = false;
 
-            // try to determine event type from known handlers
             foreach (var handlerKey in _handlers.Keys)
             {
                 try
@@ -110,11 +109,23 @@ namespace Cqrs.Shared.Infrastructure
                     {
                         foreach (var handler in _handlers[handlerKey])
                             handler(obj);
+
+                        processed = true;
+                        break; 
                     }
                 }
-                catch { /* skip if deserialization fails */ }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[RabbitMq] Failed to handle {handlerKey}: {ex.Message}");
+                }
             }
+
+            if (processed)
+                _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false); 
+            else
+                _channel.BasicNack(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true); 
         }
+
 
         public void Dispose()
         {
