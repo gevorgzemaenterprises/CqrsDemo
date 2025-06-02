@@ -14,51 +14,34 @@ namespace Cqrs.Shared.Infrastructure
         private readonly IConnection _connection;
         private readonly IModel _channel;
 
-        private readonly Dictionary<string, List<Action<object>>> _handlers = new();
+        // Используем Func<T, Task> для асинхронной обработки
+        private readonly Dictionary<string, List<Func<object, Task>>> _handlers = new();
 
         public RabbitMqEventBus(IRabbitMqSettings settings)
         {
             _settings = settings;
 
-            var factory = new ConnectionFactory()
+            var factory = new ConnectionFactory
             {
                 HostName = settings.HostName,
                 UserName = settings.UserName,
-                Password = settings.Password
+                Password = settings.Password,
+                DispatchConsumersAsync = true // ✅ для поддержки async consumers
             };
 
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
 
-            // 👇️ ОБЯЗАТЕЛЬНО СОЗДАЕМ EXCHANGE ПЕРЕД ПУБЛИКАЦИЕЙ
-            _channel.ExchangeDeclare(
-                exchange: "cqrs_exchange",
-                type: ExchangeType.Direct,
-                durable: true,
-                autoDelete: false,
-                arguments: null);
+            _channel.ExchangeDeclare("cqrs_exchange", ExchangeType.Direct, durable: true, autoDelete: false);
+            _channel.QueueDeclare(settings.QueueName, durable: false, exclusive: false, autoDelete: false);
+            _channel.QueueBind(settings.QueueName, "cqrs_exchange", routingKey: "OrderCreatedEvent");
 
-            _channel.QueueDeclare(
-                queue: settings.QueueName,
-                durable: false,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
+            _channel.BasicQos(0, 1, false); // ✅ prefetch = 1 — не больше одного сообщения за раз
 
-            // ❗ Если ты хочешь, чтобы очередь получала события с exchange — нужно биндинг сделать:
-            // (можно сделать универсально позже, сейчас хотя бы для OrderCreatedEvent)
-            _channel.QueueBind(
-                queue: settings.QueueName,
-                exchange: "cqrs_exchange",
-                routingKey: "OrderCreatedEvent");
+            var consumer = new AsyncEventingBasicConsumer(_channel);
+            consumer.Received += HandleReceivedEventAsync;
 
-            var consumer = new EventingBasicConsumer(_channel);
-            consumer.Received += HandleReceivedEvent;
-
-            _channel.BasicConsume(
-                queue: settings.QueueName,
-                autoAck: false,
-                consumer: consumer);
+            _channel.BasicConsume(queue: settings.QueueName, autoAck: false, consumer: consumer);
         }
 
         public void Publish<T>(T @event) where T : class
@@ -78,24 +61,24 @@ namespace Cqrs.Shared.Infrastructure
 
         public Task PublishAsync<T>(T @event) where T : class
         {
-            Publish(@event); 
+            Publish(@event);
             return Task.CompletedTask;
         }
 
-        public void Subscribe<T>(Action<T> handler) where T : class
+        public void Subscribe<T>(Func<T, Task> handler) where T : class
         {
             var key = typeof(T).Name;
             if (!_handlers.ContainsKey(key))
-                _handlers[key] = new List<Action<object>>();
+                _handlers[key] = new List<Func<object, Task>>();
 
-            _handlers[key].Add(e => handler((T)e));
+            _handlers[key].Add(async obj => await handler((T)obj));
         }
 
-        private void HandleReceivedEvent(object? model, BasicDeliverEventArgs ea)
+        private async Task HandleReceivedEventAsync(object sender, BasicDeliverEventArgs ea)
         {
             var body = ea.Body.ToArray();
             var message = Encoding.UTF8.GetString(body);
-            bool processed = false;
+            var processed = false;
 
             foreach (var handlerKey in _handlers.Keys)
             {
@@ -108,24 +91,25 @@ namespace Cqrs.Shared.Infrastructure
                     if (obj != null)
                     {
                         foreach (var handler in _handlers[handlerKey])
-                            handler(obj);
+                        {
+                            await handler(obj); // ✅ ожидаем завершения
+                        }
 
                         processed = true;
-                        break; 
+                        break;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[RabbitMq] Failed to handle {handlerKey}: {ex.Message}");
+                    Console.WriteLine($"[RabbitMq] Error processing {handlerKey}: {ex.Message}");
                 }
             }
 
             if (processed)
-                _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false); 
+                _channel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
             else
-                _channel.BasicNack(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true); 
+                _channel.BasicNack(deliveryTag: ea.DeliveryTag, multiple: false, requeue: true);
         }
-
 
         public void Dispose()
         {

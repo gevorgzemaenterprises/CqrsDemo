@@ -32,16 +32,17 @@ builder.Services.AddScoped<IIntegrationEventHandler<OrderCreatedEvent>, OrderCre
 
 var app = builder.Build();
 
-// Subscribe to RabbitMQ event bus for OrderCreatedEvent.
-// When the event is received, resolve the corresponding event handler from a new service scope
-// and invoke its HandleAsync method to process the event.
-using (var scope = app.Services.CreateScope())
-{
-    var bus = scope.ServiceProvider.GetRequiredService<IEventBus>();
+// ? Capture root service provider ONCE
+var serviceProvider = app.Services;
 
-    bus.Subscribe<OrderCreatedEvent>(async (@event) =>
+// ? Subscribe to events using a scoped handler
+using (var scope = serviceProvider.CreateScope())
+{
+    var eventBus = scope.ServiceProvider.GetRequiredService<IEventBus>();
+
+    eventBus.Subscribe<OrderCreatedEvent>(async @event =>
     {
-        using var innerScope = app.Services.CreateScope();
+        using var innerScope = serviceProvider.CreateScope();
         var handler = innerScope.ServiceProvider.GetRequiredService<IIntegrationEventHandler<OrderCreatedEvent>>();
         await handler.HandleAsync(@event);
     });
