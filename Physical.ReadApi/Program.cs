@@ -8,10 +8,12 @@ using Physical.ReadApi.Data;
 using Physical.ReadApi.EventHandlers;
 using Physical.ReadApi.Handlers;
 using Physical.ReadApi.Queries;
+using Physical.ReadApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
+builder.Services.AddScoped<OrderCreatedEventHandler>();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -23,32 +25,19 @@ builder.Services.AddDbContext<ReadDbContext>(options =>
 // Add MediatR
 builder.Services.AddMediatR(typeof(GetOrderByIdQueryHandler).Assembly);
 
-//  Add RabbitMQ settings + event bus
+// Add RabbitMQ
 builder.Services.AddSingleton<IRabbitMqSettings, RabbitMqSettings>();
 builder.Services.AddSingleton<IEventBus, RabbitMqEventBus>();
 
-//  Add event handler
+// Add event handlers
 builder.Services.AddScoped<IIntegrationEventHandler<OrderCreatedEvent>, OrderCreatedEventHandler>();
 
 var app = builder.Build();
 
-// ? Capture root service provider ONCE
-var serviceProvider = app.Services;
+// ?? ?????????? ???????? ?? ??????? (????? ??????????)
+app.UseEventBusSubscriptions();
 
-// ? Subscribe to events using a scoped handler
-using (var scope = serviceProvider.CreateScope())
-{
-    var eventBus = scope.ServiceProvider.GetRequiredService<IEventBus>();
-
-    eventBus.Subscribe<OrderCreatedEvent>(async @event =>
-    {
-        using var innerScope = serviceProvider.CreateScope();
-        var handler = innerScope.ServiceProvider.GetRequiredService<IIntegrationEventHandler<OrderCreatedEvent>>();
-        await handler.HandleAsync(@event);
-    });
-}
-
-// Configure middleware
+// Swagger ? ?????????
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
